@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NexBot — L'assistant IA qui vend pour vous</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black: #0a0a0a;
+    --white: #ffffff;
+    --gray: #71717a;
+    --gray-light: #a1a1aa;
+    --surface: #111111;
+    --surface2: #1a1a1a;
+    --border: #222222;
+    --blue: #3b82f6;
+    --blue-glow: rgba(59,130,246,0.15);
+  }
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--black);
+    color: var(--white);
+    overflow-x: hidden;
+  }
+
+  /* ── NOISE OVERLAY ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.4;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 60px;
+    background: rgba(10,10,10,0.8);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+
+  .nav-logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 22px;
+    color: var(--white);
+    text-decoration: none;
+    letter-spacing: -0.02em;
+  }
+
+  .nav-logo span { color: var(--blue); }
+
+  .nav-links {
+    display: flex;
+    align-items: center;
+    gap: 40px;
+    list-style: none;
+  }
+
+  .nav-links a {
+    font-size: 14px;
+    color: var(--gray-light);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .nav-links a:hover { color: var(--white); }
+
+  .nav-cta {
+    background: var(--blue) !important;
+    color: var(--white) !important;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 500;
+    transition: opacity 0.2s !important;
+  }
+
+  .nav-cta:hover { opacity: 0.85; }
+
+  /* ── HERO ── */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 120px 40px 80px;
+    position: relative;
+  }
+
+  .hero-glow {
+    position: absolute;
+    top: 20%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(59,130,246,0.12) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(59,130,246,0.1);
+    border: 1px solid rgba(59,130,246,0.25);
+    border-radius: 50px;
+    padding: 6px 16px;
+    font-size: 13px;
+    color: #93c5fd;
+    margin-bottom: 36px;
+    animation: fadeDown 0.6s ease forwards;
+    opacity: 0;
+  }
+
+  .hero-badge::before {
+    content: '';
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: #3b82f6;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.8); }
+  }
+
+  .hero h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(52px, 8vw, 96px);
+    font-weight: 800;
+    line-height: 0.95;
+    letter-spacing: -0.03em;
+    margin-bottom: 28px;
+    animation: fadeDown 0.6s 0.1s ease forwards;
+    opacity: 0;
+  }
+
+  .hero h1 .accent { color: var(--blue); }
+
+  .hero p {
+    font-size: 18px;
+    font-weight: 300;
+    color: var(--gray-light);
+    max-width: 520px;
+    line-height: 1.6;
+    margin-bottom: 48px;
+    animation: fadeDown 0.6s 0.2s ease forwards;
+    opacity: 0;
+  }
+
+  .hero-actions {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    animation: fadeDown 0.6s 0.3s ease forwards;
+    opacity: 0;
+  }
+
+  .btn-primary {
+    background: var(--blue);
+    color: var(--white);
+    padding: 14px 28px;
+    border-radius: 10px;
+    font-family: 'Syne', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    text-decoration: none;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .btn-primary:hover {
+    background: #2563eb;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(59,130,246,0.3);
+  }
+
+  .btn-secondary {
+    color: var(--gray-light);
+    font-size: 15px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: color 0.2s;
+  }
+
+  .btn-secondary:hover { color: var(--white); }
+
+  .hero-stats {
+    display: flex;
+    gap: 48px;
+    margin-top: 80px;
+    padding-top: 48px;
+    border-top: 1px solid var(--border);
+    animation: fadeDown 0.6s 0.4s ease forwards;
+    opacity: 0;
+  }
+
+  .hero-stat .num {
+    font-family: 'Syne', sans-serif;
+    font-size: 36px;
+    font-weight: 800;
+    color: var(--white);
+  }
+
+  .hero-stat .num span { color: var(--blue); }
+
+  .hero-stat .label {
+    font-size: 13px;
+    color: var(--gray);
+    margin-top: 4px;
+  }
+
+  @keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── DEMO STRIP ── */
+  .demo-strip {
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    padding: 20px 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    font-size: 14px;
+    color: var(--gray-light);
+  }
+
+  .demo-strip a {
+    color: var(--blue);
+    text-decoration: none;
+    font-weight: 500;
+  }
+
+  .demo-strip a:hover { text-decoration: underline; }
+
+  /* ── SECTION ── */
+  section {
+    padding: 100px 60px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .section-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--blue);
+    margin-bottom: 16px;
+  }
+
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(32px, 4vw, 48px);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    margin-bottom: 16px;
+  }
+
+  .section-sub {
+    font-size: 17px;
+    color: var(--gray-light);
+    font-weight: 300;
+    line-height: 1.6;
+    max-width: 560px;
+  }
+
+  /* ── FEATURES ── */
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2px;
+    margin-top: 60px;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+
+  .feat {
+    background: var(--surface);
+    padding: 36px 32px;
+    transition: background 0.2s;
+  }
+
+  .feat:hover { background: var(--surface2); }
+
+  .feat-icon {
+    font-size: 28px;
+    margin-bottom: 20px;
+    display: block;
+  }
+
+  .feat-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 17px;
+    font-weight: 700;
+    margin-bottom: 10px;
+  }
+
+  .feat-desc {
+    font-size: 14px;
+    color: var(--gray-light);
+    line-height: 1.6;
+  }
+
+  /* ── HOW IT WORKS ── */
+  .how-section {
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .how-section section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
+    align-items: center;
+  }
+
+  .steps { display: flex; flex-direction: column; gap: 0; }
+
+  .step {
+    display: flex;
+    gap: 20px;
+    padding: 24px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .step:last-child { border-bottom: none; }
+
+  .step-num {
+    width: 36px; height: 36px;
+    background: var(--blue);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    flex-shrink: 0;
+    color: var(--white);
+  }
+
+  .step-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+
+  .step-desc {
+    font-size: 13px;
+    color: var(--gray-light);
+    line-height: 1.5;
+  }
+
+  .how-visual {
+    background: var(--black);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .how-visual::before {
+    content: '';
+    position: absolute;
+    top: -40px; right: -40px;
+    width: 200px; height: 200px;
+    background: radial-gradient(circle, rgba(59,130,246,0.1) 0%, transparent 70%);
+  }
+
+  .chat-preview { display: flex; flex-direction: column; gap: 12px; }
+
+  .chat-msg {
+    max-width: 80%;
+    padding: 12px 16px;
+    border-radius: 12px;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  .chat-msg.user {
+    background: var(--blue);
+    color: var(--white);
+    align-self: flex-end;
+    border-bottom-right-radius: 4px;
+  }
+
+  .chat-msg.bot {
+    background: var(--surface2);
+    color: var(--gray-light);
+    align-self: flex-start;
+    border-bottom-left-radius: 4px;
+    border: 1px solid var(--border);
+  }
+
+  .chat-msg.bot strong { color: var(--white); }
+
+  /* ── PRICING ── */
+  .pricing-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin-top: 60px;
+  }
+
+  .plan {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px 28px;
+    position: relative;
+    transition: border-color 0.2s;
+  }
+
+  .plan:hover { border-color: #333; }
+
+  .plan.featured {
+    border-color: var(--blue);
+    background: linear-gradient(135deg, rgba(59,130,246,0.05) 0%, var(--surface) 100%);
+  }
+
+  .plan-badge-top {
+    position: absolute;
+    top: -12px; left: 50%;
+    transform: translateX(-50%);
+    background: var(--blue);
+    color: var(--white);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 14px;
+    border-radius: 50px;
+    white-space: nowrap;
+    font-family: 'Syne', sans-serif;
+  }
+
+  .plan-name {
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--gray);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 16px;
+  }
+
+  .plan-price {
+    font-family: 'Syne', sans-serif;
+    font-size: 52px;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .plan-price sup {
+    font-size: 24px;
+    vertical-align: top;
+    margin-top: 10px;
+    display: inline-block;
+  }
+
+  .plan-period {
+    font-size: 13px;
+    color: var(--gray);
+    margin-bottom: 8px;
+  }
+
+  .plan-install {
+    font-size: 12px;
+    color: var(--gray);
+    padding-bottom: 20px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .plan-feats { display: flex; flex-direction: column; gap: 10px; margin-bottom: 28px; }
+
+  .plan-feat {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 13px;
+    color: var(--gray-light);
+    line-height: 1.4;
+  }
+
+  .plan-feat::before {
+    content: '✓';
+    color: var(--blue);
+    font-weight: 700;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .plan-conversations {
+    font-size: 12px;
+    color: var(--blue);
+    font-weight: 500;
+    margin-bottom: 20px;
+  }
+
+  .plan-btn {
+    display: block;
+    text-align: center;
+    padding: 12px;
+    border-radius: 8px;
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    text-decoration: none;
+    transition: all 0.2s;
+  }
+
+  .plan-btn.primary {
+    background: var(--blue);
+    color: var(--white);
+  }
+
+  .plan-btn.primary:hover {
+    background: #2563eb;
+    transform: translateY(-1px);
+  }
+
+  .plan-btn.secondary {
+    background: transparent;
+    color: var(--gray-light);
+    border: 1px solid var(--border);
+  }
+
+  .plan-btn.secondary:hover {
+    border-color: #444;
+    color: var(--white);
+  }
+
+  /* ── FAQ ── */
+  .faq { display: flex; flex-direction: column; gap: 0; margin-top: 48px; }
+
+  .faq-item {
+    border-bottom: 1px solid var(--border);
+    padding: 24px 0;
+    cursor: pointer;
+  }
+
+  .faq-q {
+    font-family: 'Syne', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .faq-q::after {
+    content: '+';
+    font-size: 22px;
+    color: var(--blue);
+    flex-shrink: 0;
+    transition: transform 0.2s;
+  }
+
+  .faq-item.open .faq-q::after { transform: rotate(45deg); }
+
+  .faq-a {
+    font-size: 14px;
+    color: var(--gray-light);
+    line-height: 1.7;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease, padding 0.3s;
+  }
+
+  .faq-item.open .faq-a {
+    max-height: 200px;
+    padding-top: 14px;
+  }
+
+  /* ── CTA FINAL ── */
+  .cta-section {
+    text-align: center;
+    padding: 100px 40px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .cta-section::before {
+    content: '';
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 700px; height: 400px;
+    background: radial-gradient(ellipse, rgba(59,130,246,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .cta-section h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(36px, 5vw, 60px);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    margin-bottom: 20px;
+  }
+
+  .cta-section p {
+    font-size: 17px;
+    color: var(--gray-light);
+    margin-bottom: 40px;
+    font-weight: 300;
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 32px 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 13px;
+    color: var(--gray);
+  }
+
+  footer a {
+    color: var(--gray);
+    text-decoration: none;
+  }
+
+  footer a:hover { color: var(--white); }
+
+  /* ── ANIMATIONS ── */
+  .reveal {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 768px) {
+    nav { padding: 16px 24px; }
+    .nav-links { display: none; }
+    section { padding: 60px 24px; }
+    .features-grid { grid-template-columns: 1fr; }
+    .how-section section { grid-template-columns: 1fr; }
+    .pricing-grid { grid-template-columns: 1fr; }
+    .hero-stats { gap: 24px; }
+    footer { flex-direction: column; gap: 12px; text-align: center; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="nav-logo">Nex<span>Bot</span></a>
+  <ul class="nav-links">
+    <li><a href="#features">Fonctionnalités</a></li>
+    <li><a href="#how">Comment ça marche</a></li>
+    <li><a href="#pricing">Tarifs</a></li>
+    <li><a href="#faq">FAQ</a></li>
+    <li><a href="tel:0634602772" style="color:var(--gray-light);font-size:14px;text-decoration:none;">📞 06 34 60 27 72</a></li>
+    <li><a href="mailto:paul.jublot1@gmail.com" class="nav-cta">Demander une démo</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-glow"></div>
+
+  <div class="hero-badge">Assistant IA e-commerce · Disponible en 48h</div>
+
+  <h1>L'assistant qui<br>vend <span class="accent">pour vous</span></h1>
+
+  <p>NexBot répond à vos clients 24h/24, oriente leurs achats et réduit vos emails SAV — pendant que vous faites autre chose.</p>
+
+  <div class="hero-actions">
+    <a href="mailto:paul.jublot1@gmail.com?subject=Demande de démo NexBot" class="btn-primary">
+      Demander une démo →
+    </a>
+    <a href="https://mon-chatbot-seven.vercel.app" target="_blank" class="btn-secondary">
+      Voir la démo live ↗
+    </a>
+  </div>
+
+  <div class="hero-stats">
+    <div class="hero-stat">
+      <div class="num">48<span>h</span></div>
+      <div class="label">délai d'installation</div>
+    </div>
+    <div class="hero-stat">
+      <div class="num">24<span>/7</span></div>
+      <div class="label">disponibilité</div>
+    </div>
+    <div class="hero-stat">
+      <div class="num">3<span>x</span></div>
+      <div class="label">plus de conversions</div>
+    </div>
+    <div class="hero-stat">
+      <div class="num">0</div>
+      <div class="label">ligne de code à écrire</div>
+    </div>
+  </div>
+</div>
+
+<!-- DEMO STRIP -->
+<div class="demo-strip">
+  🤖 Testez la démo en direct sur une boutique vintage —
+  <a href="https://mon-chatbot-seven.vercel.app" target="_blank">mon-chatbot-seven.vercel.app</a>
+  · Cliquez sur le chat en bas à droite
+</div>
+
+<!-- FEATURES -->
+<div id="features">
+  <section>
+    <div class="reveal">
+      <div class="section-label">Fonctionnalités</div>
+      <h2 class="section-title">Tout ce dont votre site a besoin</h2>
+      <p class="section-sub">Un assistant complet, prêt en 48h, qui s'adapte à votre activité.</p>
+    </div>
+
+    <div class="features-grid reveal">
+      <div class="feat">
+        <span class="feat-icon">💬</span>
+        <div class="feat-title">Réponses instantanées</div>
+        <div class="feat-desc">Votre bot répond en moins d'une seconde, 24h/24 et 7j/7, sans jamais se fatiguer.</div>
+      </div>
+      <div class="feat">
+        <span class="feat-icon">🛍️</span>
+        <div class="feat-title">Catalogue produits intégré</div>
+        <div class="feat-desc">Le bot connaît vos produits, vos prix et vos disponibilités. Il oriente chaque visiteur vers le bon produit.</div>
+      </div>
+      <div class="feat">
+        <span class="feat-icon">🌍</span>
+        <div class="feat-title">Multilingue automatique</div>
+        <div class="feat-desc">Détecte la langue de votre visiteur et répond dans la même. Français, anglais, espagnol, allemand, italien.</div>
+      </div>
+      <div class="feat">
+        <span class="feat-icon">📊</span>
+        <div class="feat-title">Dashboard admin</div>
+        <div class="feat-desc">Accédez à vos statistiques, conversations et questions fréquentes depuis un espace sécurisé.</div>
+      </div>
+      <div class="feat">
+        <span class="feat-icon">⚡</span>
+        <div class="feat-title">Installation en 48h</div>
+        <div class="feat-desc">Une ligne de code sur votre site. Compatible avec tous les CMS : WordPress, Shopify, Wix, site custom.</div>
+      </div>
+      <div class="feat">
+        <span class="feat-icon">🔒</span>
+        <div class="feat-title">Sécurisé et fiable</div>
+        <div class="feat-desc">Données hébergées en Europe. Dashboard protégé par mot de passe. Disponibilité 99,9%.</div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- HOW IT WORKS -->
+<div class="how-section" id="how">
+  <section>
+    <div class="reveal">
+      <div class="section-label">Process</div>
+      <h2 class="section-title">Opérationnel en 48h</h2>
+      <p class="section-sub">Vous nous envoyez vos infos, on s'occupe de tout.</p>
+
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">01</div>
+          <div>
+            <div class="step-title">Vous remplissez le formulaire</div>
+            <div class="step-desc">Nom de votre boutique, produits, FAQ, horaires — 10 minutes maximum.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">02</div>
+          <div>
+            <div class="step-title">On configure votre bot</div>
+            <div class="step-desc">En 48h votre assistant connaît tout de votre activité et parle votre langue.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">03</div>
+          <div>
+            <div class="step-title">On installe le widget</div>
+            <div class="step-desc">Une ligne de code sur votre site. C'est tout. Vous n'avez rien à faire.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">04</div>
+          <div>
+            <div class="step-title">Votre bot travaille pour vous</div>
+            <div class="step-desc">Vos visiteurs obtiennent des réponses, vous gagnez des ventes — même la nuit.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="how-visual reveal">
+      <div class="chat-preview">
+        <div class="chat-msg user">Bonjour, vous avez des tables en chêne massif ?</div>
+        <div class="chat-msg bot">
+          <strong>Oui, absolument !</strong> Nous avons plusieurs modèles en chêne massif disponibles dès maintenant 🌿<br><br>
+          Notre <strong>Table Rustique Chêne</strong> à 890€ est notre best-seller — dimensions 180×90cm, disponible sous 5 jours.<br><br>
+          Vous cherchez plutôt pour une salle à manger ou un bureau ?
+        </div>
+        <div class="chat-msg user">Salle à manger, on est 6</div>
+        <div class="chat-msg bot">
+          Parfait pour 6 personnes ! Je vous recommande la <strong>Table Familiale Chêne 200cm</strong> à 1 190€ — elle accueille facilement 6 à 8 couverts.<br><br>
+          Livraison gratuite dans l'Oise 🚚 Envie de voir les photos ?
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- PRICING -->
+<div id="pricing">
+  <section>
+    <div class="reveal" style="text-align:center; max-width:none;">
+      <div class="section-label">Tarifs</div>
+      <h2 class="section-title">Simple et transparent</h2>
+      <p class="section-sub" style="margin:0 auto;">Pas de surprise. Pas d'engagement long terme. Résiliable à tout moment.</p>
+    </div>
+
+    <div class="pricing-grid reveal">
+
+      <div class="plan">
+        <div class="plan-name">Basic</div>
+        <div class="plan-price"><sup>€</sup>59</div>
+        <div class="plan-period">/mois</div>
+        <div class="plan-install">+ 500€ installation unique</div>
+        <div class="plan-conversations">✦ 1 000 conversations/mois</div>
+        <div class="plan-feats">
+          <div class="plan-feat">Chatbot IA personnalisé</div>
+          <div class="plan-feat">Catalogue produits intégré</div>
+          <div class="plan-feat">Widget intégrable sur votre site</div>
+          <div class="plan-feat">Support inclus</div>
+          <div class="plan-feat">Multilingue automatique</div>
+        </div>
+        <a href="mailto:paul.jublot1@gmail.com?subject=Je veux NexBot Basic" class="plan-btn secondary">Commencer →</a>
+      </div>
+
+      <div class="plan featured">
+        <div class="plan-badge-top">⭐ Recommandé</div>
+        <div class="plan-name">Pro</div>
+        <div class="plan-price"><sup>€</sup>89</div>
+        <div class="plan-period">/mois</div>
+        <div class="plan-install">+ 500€ installation unique</div>
+        <div class="plan-conversations">✦ 5 000 conversations/mois</div>
+        <div class="plan-feats">
+          <div class="plan-feat">Tout Basic +</div>
+          <div class="plan-feat">Réservations Calendly intégrées</div>
+          <div class="plan-feat">Dashboard admin complet</div>
+          <div class="plan-feat">Export conversations CSV</div>
+          <div class="plan-feat">Notifications email</div>
+        </div>
+        <a href="mailto:paul.jublot1@gmail.com?subject=Je veux NexBot Pro" class="plan-btn primary">Commencer →</a>
+      </div>
+
+      <div class="plan">
+        <div class="plan-name">Premium</div>
+        <div class="plan-price"><sup>€</sup>129</div>
+        <div class="plan-period">/mois</div>
+        <div class="plan-install">+ 500€ installation unique</div>
+        <div class="plan-conversations">✦ 15 000 conversations/mois</div>
+        <div class="plan-feats">
+          <div class="plan-feat">Tout Pro +</div>
+          <div class="plan-feat">Rapport mensuel automatique</div>
+          <div class="plan-feat">Personnalisation en self-service</div>
+          <div class="plan-feat">Alertes questions sans réponse</div>
+          <div class="plan-feat">Priorité support 4h</div>
+        </div>
+        <a href="mailto:paul.jublot1@gmail.com?subject=Je veux NexBot Premium" class="plan-btn secondary">Commencer →</a>
+      </div>
+
+    </div>
+  </section>
+</div>
+
+<!-- FAQ -->
+<div id="faq" style="background: var(--surface); border-top: 1px solid var(--border);">
+  <section>
+    <div class="reveal">
+      <div class="section-label">FAQ</div>
+      <h2 class="section-title">Questions fréquentes</h2>
+    </div>
+
+    <div class="faq reveal">
+      <div class="faq-item">
+        <div class="faq-q">Mon site est sur WordPress, est-ce compatible ?</div>
+        <div class="faq-a">Oui, NexBot est compatible avec tous les CMS et sites web — WordPress, Shopify, Wix, Squarespace, ou un site développé sur mesure. L'installation se fait en collant une simple ligne de code dans votre site.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">Combien de temps pour installer le bot ?</div>
+        <div class="faq-a">48h après réception de vos informations (nom de boutique, produits, FAQ). Vous remplissez un formulaire simple, on s'occupe de tout le reste.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">Que se passe-t-il si je veux modifier les réponses ?</div>
+        <div class="faq-a">Contactez-nous par email et on met à jour votre bot sous 24h. En plan Premium, vous pouvez modifier certains éléments directement depuis votre dashboard sans nous contacter.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">Puis-je résilier à tout moment ?</div>
+        <div class="faq-a">Oui, sans engagement et sans frais de résiliation. L'abonnement mensuel est résiliable à tout moment avec un préavis de 30 jours.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">Le bot parle-t-il vraiment plusieurs langues ?</div>
+        <div class="faq-a">Oui, il détecte automatiquement la langue de votre visiteur et répond dans la même — français, anglais, espagnol, allemand, italien. Aucun réglage nécessaire de votre part.</div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- CTA FINAL -->
+<div class="cta-section">
+  <h2 class="reveal">Prêt à laisser NexBot<br>travailler pour vous ?</h2>
+  <p class="reveal">Installation en 48h. Premier mois offert sur demande.</p>
+  <div class="reveal" style="display:flex;gap:16px;align-items:center;justify-content:center;flex-wrap:wrap;">
+    <a href="mailto:paul.jublot1@gmail.com?subject=Je veux une démo NexBot&body=Bonjour,%0D%0A%0D%0AJe souhaite une démonstration de NexBot pour mon site.%0D%0A%0D%0AMon site : %0D%0AMon activité : %0D%0A%0D%0ACordialement" class="btn-primary" style="font-size:17px; padding:18px 36px;">
+      Demander une démo gratuite →
+    </a>
+    <a href="https://wa.me/33634602772?text=Bonjour%2C%20je%20souhaite%20une%20d%C3%A9mo%20de%20NexBot%20pour%20mon%20site." class="btn-primary" style="font-size:17px; padding:18px 36px; background:#25D366;">
+      💬 WhatsApp
+    </a>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div>© 2026 NexBot · Oise, France</div>
+  <div>
+    <a href="https://mon-chatbot-seven.vercel.app" target="_blank">Voir la démo</a>
+    &nbsp;·&nbsp;
+    <a href="mailto:paul.jublot1@gmail.com">paul.jublot1@gmail.com</a>
+    &nbsp;·&nbsp;
+    <a href="tel:0634602772">06 34 60 27 72</a>
+  </div>
+</footer>
+
+<script>
+  // Reveal on scroll
+  const reveals = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry, i) => {
+      if (entry.isIntersecting) {
+        setTimeout(() => entry.target.classList.add('visible'), i * 80);
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1 });
+  reveals.forEach(el => observer.observe(el));
+
+  // FAQ toggle
+  document.querySelectorAll('.faq-item').forEach(item => {
+    item.querySelector('.faq-q').addEventListener('click', () => {
+      item.classList.toggle('open');
+    });
+  });
+
+  // Nav active on scroll
+  const sections = document.querySelectorAll('[id]');
+  window.addEventListener('scroll', () => {
+    let current = '';
+    sections.forEach(s => {
+      if (window.scrollY >= s.offsetTop - 100) current = s.id;
+    });
+    document.querySelectorAll('.nav-links a').forEach(a => {
+      a.style.color = a.getAttribute('href') === '#' + current ? '#fff' : '';
+    });
+  });
+</script>
+</body>
+</html>
